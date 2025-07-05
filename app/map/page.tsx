@@ -7,7 +7,7 @@ import UserIcon from '../../components/UserIcon'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
+mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3B1cTBnNjA1OTAycm9vb3I4cWsyNnEifQ.KZwiB9UJXgLZpLlTP6Sskg'; // Replace with your token
 
 const MapboxMap = dynamic(() => import('../../components/MapboxMap'), { ssr: false })
 
