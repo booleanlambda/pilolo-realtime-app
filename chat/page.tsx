@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabaseClient' // fixed path
+import { supabase } from '@lib/supabaseClient' // fixed path
 
 type Message = {
   id: number
