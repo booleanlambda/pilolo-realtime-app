@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../../lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient' // ✅ fixed path
 
 type Message = {
   id: number
@@ -15,10 +15,10 @@ export default function ChatPage() {
   const [username, setUsername] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
 
-  // Fetch messages
+  // Fetch existing messages
   useEffect(() => {
     const fetchMessages = async () => {
-      let { data } = await supabase
+      const { data } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
@@ -27,7 +27,7 @@ export default function ChatPage() {
     fetchMessages()
   }, [])
 
-  // Subscribe to new messages via Postgres changes (realtime)
+  // Subscribe to realtime messages
   useEffect(() => {
     const channel = supabase
       .channel('realtime-chat')
@@ -45,10 +45,12 @@ export default function ChatPage() {
     }
   }, [])
 
+  // Auto scroll to newest message
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Handle message sending
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
@@ -69,6 +71,7 @@ export default function ChatPage() {
       minHeight: 500
     }}>
       <h2>Realtime Chat</h2>
+
       <div style={{ marginBottom: 8 }}>
         <input
           placeholder="Your name"
@@ -77,6 +80,7 @@ export default function ChatPage() {
           style={{ marginRight: 8 }}
         />
       </div>
+
       <div style={{
         height: 300,
         overflowY: 'auto',
@@ -94,6 +98,7 @@ export default function ChatPage() {
         ))}
         <div ref={endRef} />
       </div>
+
       <form onSubmit={sendMessage} style={{ display: 'flex' }}>
         <input
           placeholder="Type a message"
