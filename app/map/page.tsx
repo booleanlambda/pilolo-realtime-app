@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import SplashScreen from '../../components/SplashScreen'
 import ClockWidget from '../../components/ClockWidget'
 import UserIcon from '../../components/UserIcon'
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MapboxMap = dynamic(() => import('../../components/MapboxMap'), { ssr: false })
 
