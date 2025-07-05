@@ -1,10 +1,6 @@
--- Run this SQL in your Supabase project's SQL editor
+import { createClient } from '@supabase/supabase-js'
 
-create table if not exists messages (
-  id bigserial primary key,
-  content text not null,
-  username text,
-  created_at timestamptz not null default now()
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
--- Enable Realtime on the "messages" table in Supabase dashboard
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
