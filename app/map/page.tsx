@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import SplashScreen from '../../components/SplashScreen'
 import ClockWidget from '../../components/ClockWidget'
 import UserIcon from '../../components/UserIcon'
-import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
 const MapboxMap = dynamic(() => import('../../components/MapboxMap'), { ssr: false })
 
