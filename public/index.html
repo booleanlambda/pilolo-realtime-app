@@ -1,1 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pilolo Map with Loader + Clock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
 
+    #map {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease;
+    }
+
+    #loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #mapBackground {
+      position: absolute;
+      inset: 0;
+      background: url("Assets/map.png") no-repeat center center/cover;
+      opacity: 0;
+      transition: opacity 3s ease;
+      z-index: 0;
+    }
+
+    #mapBackground.visible {
+      opacity: 0.6;
+    }
+
+    #piloloText {
+      display: flex;
+      gap: 10px;
+      font-size: 64px;
+      font-weight: bold;
+      color: #000;
+      z-index: 2;
+    }
+
+    .letter {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: slideIn 0.5s forwards;
+    }
+
+    .letter:nth-child(1) { animation-delay: 0s; }
+    .letter:nth-child(2) { animation-delay: 0.5s; }
+    .letter:nth-child(3) { animation-delay: 1s; }
+    .letter:nth-child(4) { animation-delay: 1.5s; }
+    .letter:nth-child(5) { animation-delay: 2s; }
+    .letter:nth-child(6) { animation-delay: 2.5s; }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #spinner {
+      margin-top: 30px;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #0077ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 2;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #topBar {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      width: 100%;
+      padding: 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 11;
+    }
+
+    #clock {
+      width: 64px;
+      height: 64px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      box-shadow: 0 0 4px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #clock svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .clock-face {
+      fill: none;
+      stroke: #222;
+      stroke-width: 3;
+    }
+
+    .center-dot {
+      fill: #111;
+    }
+
+    .hand {
+      stroke-linecap: round;
+      transform-box: fill-box;
+      transform-origin: 50px 50px;
+    }
+
+    .minute {
+      stroke: black;
+      stroke-width: 3;
+    }
+
+    .second {
+      stroke: red;
+      stroke-width: 2;
+    }
+
+    #timeText {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.6);
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+
+    #userIcon {
+      width: 64px;
+      height: 64px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #userIcon svg {
+      width: 32px;
+      height: 32px;
+      fill: black;
+    }
+
+    #digBtn {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to right, gold, orange);
+      border-radius: 999px;
+      padding: 16px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      z-index: 10;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+    }
+
+    #instruction {
+      position: absolute;
+      background: white;
+      padding: 12px 18px;
+      font-size: 14px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: left 0.3s ease, top 0.3s ease;
+    }
+
+    #closeInstruction {
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      background: transparent;
+      border: none;
+    }
+
+    .mapboxgl-ctrl-bottom-right {
+      z-index: 10 !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <div id="mapBackground"></div>
+  <div id="piloloText">
+    <span class="letter" id="triggerSpinner">P</span>
+    <span class="letter">i</span>
+    <span class="letter">l</span>
+    <span class="letter" id="triggerMapBg">o</span>
+    <span class="letter">l</span>
+    <span class="letter">o</span>
+  </div>
+  <div id="spinner"></div>
+</div>
+
+<!-- Top Navigation -->
+<div id="topBar">
+  <div id="clock">
+    <svg viewBox="0 0 100 100">
+      <circle class="clock-face" cx="50" cy="50" r="48" />
+      <g id="minuteGroup"><line class="hand minute" x1="50" y1="50" x2="50" y2="24" /></g>
+      <g id="secondGroup"><line class="hand second" x1="50" y1="50" x2="50" y2="14" /></g>
+      <circle class="center-dot" cx="50" cy="50" r="2" />
+    </svg>
+  </div>
+
+  <div id="timeText">
+    <div id="minutesLeft">Loading...</div>
+    <div>10k left to dig</div>
+  </div>
+
+  <div id="userIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M12 2a5 5 0 110 10 5 5 0 010-10zm0 12c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Instruction Bubble -->
+<div id="instruction">
+  <span>Walk to blue circle and dig for treasure</span>
+  <button id="closeInstruction">✕</button>
+</div>
+
+<!-- Button -->
+<button id="digBtn">DIG FOR TREASURE</button>
+
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script>
+  // Spinner + Map Reveal
+  document.getElementById('triggerSpinner').addEventListener('animationstart', () => {
+    document.getElementById('spinner').style.display = 'block';
+  });
+
+  document.getElementById('triggerMapBg').addEventListener('animationstart', () => {
+    document.getElementById('mapBackground').classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+      document.getElementById('loader').addEventListener('transitionend', () => {
+        document.getElementById('loader').remove();
+        document.getElementById('map').style.display = 'block';
+        map.resize(); // IMPORTANT: Ensures full map renders correctly
+      });
+    }, 5000);
+  });
+
+  mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3B1cTBnNjA1OTAycm9vb3I4cWsyNnEifQ.KZwiB9UJXgLZpLlTP6Sskg'; // Replace with your token
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [-73.7284, 40.9728],
+    zoom: 14
+  });
+
+  const geo = new mapboxgl.GeolocateControl({
+    positionOptions: { enableHighAccuracy: true },
+    trackUserLocation: true,
+    showUserHeading: true
+  });
+  map.addControl(geo, 'bottom-right');
+
+  let marker, currentCoords;
+
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      currentCoords = [pos.coords.longitude, pos.coords.latitude];
+      if (!marker) {
+        marker = new mapboxgl.Marker({ color: 'green' }).setLngLat(currentCoords).addTo(map);
+        map.flyTo({ center: currentCoords, zoom: 16 });
+      } else {
+        marker.setLngLat(currentCoords);
+      }
+      updateBubblePosition(currentCoords);
+    },
+    () => alert("Geolocation blocked."),
+    { enableHighAccuracy: true }
+  );
+
+  function updateBubblePosition(coords) {
+    const bubble = document.getElementById("instruction");
+    const point = map.project(coords);
+    requestAnimationFrame(() => {
+      bubble.style.left = `${point.x}px`;
+      bubble.style.top = `${point.y - 70}px`;
+      bubble.style.transform = `translate(-50%, -100%)`;
+    });
+  }
+
+  map.on('move', () => {
+    if (marker && currentCoords) updateBubblePosition(currentCoords);
+  });
+
+  document.getElementById("closeInstruction").onclick = () => {
+    document.getElementById("instruction").style.display = "none";
+  };
+
+  const minuteGroup = document.getElementById("minuteGroup");
+  const secondGroup = document.getElementById("secondGroup");
+  const minutesLeftEl = document.getElementById("minutesLeft");
+
+  function updateClock() {
+    const now = new Date();
+    const sec = now.getSeconds();
+    const min = now.getMinutes();
+    const minsLeft = 59 - min;
+    secondGroup.setAttribute("transform", `rotate(${sec * 6}, 50, 50)`);
+    minuteGroup.setAttribute("transform", `rotate(${(min + sec / 60) * 6}, 50, 50)`);
+    minutesLeftEl.innerText = `${minsLeft + 1} minutes left to hunt`;
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
