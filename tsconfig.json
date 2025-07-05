@@ -1,0 +1,10 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",              // Required for "paths"
+    "paths": {
+      "@/*": ["./app/*"],        // For app directory in Next.js 13+
+      "@lib/*": ["./lib/*"]      // For your lib directory
+    }
+  }
+}
