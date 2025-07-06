@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Pilolo Map with Chat</title>
@@ -12,210 +13,201 @@
       overflow: hidden;
       font-family: sans-serif;
       position: relative;
-    }#map {
-  width: 100%;
-  height: 100%;
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease;
+    }
+    #loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #mapBackground {
+      position: absolute;
+      inset: 0;
+      background: url("map.png") no-repeat center center/cover;
+      opacity: 0;
+      transition: opacity 3s ease;
+      z-index: 0;
+    }
+    #mapBackground.visible {
+      opacity: 0.6;
+    }
+    #piloloText {
+      display: flex;
+      gap: 10px;
+      font-size: 64px;
+      font-weight: bold;
+      color: #000;
+      z-index: 2;
+    }
+    .letter {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: slideIn 0.5s forwards;
+    }
+    .letter:nth-child(1) { animation-delay: 0s; }
+    .letter:nth-child(2) { animation-delay: 0.5s; }
+    .letter:nth-child(3) { animation-delay: 1s; }
+    .letter:nth-child(4) { animation-delay: 1.5s; }
+    .letter:nth-child(5) { animation-delay: 2s; }
+    .letter:nth-child(6) { animation-delay: 2.5s; }
 
-#loader {
-  position: fixed;
-  inset: 0;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.6s ease;
-}
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    #spinner {
+      margin-top: 30px;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #0077ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 2;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-#loader.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+    #topBar {
+      position: fixed;
+      top: 10px;
+      left: 0;
+      width: 100%;
+      padding: 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 9998;
+    }
 
-#mapBackground {
-  position: absolute;
-  inset: 0;
-  background: url("map.png") no-repeat center center/cover;
-  opacity: 0;
-  transition: opacity 3s ease;
-  z-index: 0;
-}
+    #clock, #userIcon {
+      width: 64px;
+      height: 64px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
 
-#mapBackground.visible {
-  opacity: 0.6;
-}
+    #clock svg {
+      width: 50px;
+      height: 50px;
+    }
 
-#piloloText {
-  display: flex;
-  gap: 10px;
-  font-size: 64px;
-  font-weight: bold;
-  color: #000;
-  z-index: 2;
-}
+    #timeText {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.6);
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
 
-.letter {
-  opacity: 0;
-  transform: translateY(40px);
-  animation: slideIn 0.5s forwards;
-}
+    #loginBox {
+      position: fixed;
+      top: 90px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 9999;
+    }
 
-.letter:nth-child(1) { animation-delay: 0s; }
-.letter:nth-child(2) { animation-delay: 0.5s; }
-.letter:nth-child(3) { animation-delay: 1s; }
-.letter:nth-child(4) { animation-delay: 1.5s; }
-.letter:nth-child(5) { animation-delay: 2s; }
-.letter:nth-child(6) { animation-delay: 2.5s; }
+    #loginBox input {
+      margin-bottom: 8px;
+      padding: 6px;
+      width: 200px;
+    }
 
-@keyframes slideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+    #loginBox button {
+      padding: 6px;
+      background: #0077ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-#spinner {
-  margin-top: 30px;
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ccc;
-  border-top: 4px solid #0077ff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: none;
-  z-index: 2;
-}
+    #chatBtn {
+      display: none;
+      position: fixed;
+      bottom: 120px;
+      right: 20px;
+      padding: 12px 18px;
+      background: #0077ff;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      z-index: 9999;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+    #chatBox {
+      position: fixed;
+      bottom: 180px;
+      right: 20px;
+      width: 260px;
+      height: 300px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9999;
+    }
 
-#topBar {
-  position: fixed;
-  top: 10px;
-  left: 0;
-  width: 100%;
-  padding: 0 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 9998;
-}
+    #chatMessages {
+      flex: 1;
+      padding: 8px;
+      overflow-y: auto;
+    }
 
-#clock, #userIcon {
-  width: 64px;
-  height: 64px;
-  background: rgba(255,255,255,0.6);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+    #chatInput {
+      display: flex;
+    }
 
-#clock svg {
-  width: 50px;
-  height: 50px;
-}
+    #chatInput input {
+      flex: 1;
+      padding: 6px;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
 
-#timeText {
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
-  background: rgba(255,255,255,0.6);
-  padding: 4px 12px;
-  border-radius: 8px;
-}
-
-#loginBox {
-  position: fixed;
-  top: 90px;
-  right: 20px;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  display: none;
-  flex-direction: column;
-  z-index: 9999;
-}
-
-#loginBox input {
-  margin-bottom: 8px;
-  padding: 6px;
-  width: 200px;
-}
-
-#loginBox button {
-  padding: 6px;
-  background: #0077ff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-#chatBtn {
-  display: none;
-  position: fixed;
-  bottom: 120px;
-  right: 20px;
-  padding: 12px 18px;
-  background: #0077ff;
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  z-index: 9999;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-#chatBox {
-  position: fixed;
-  bottom: 180px;
-  right: 20px;
-  width: 260px;
-  height: 300px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 9999;
-}
-
-#chatMessages {
-  flex: 1;
-  padding: 8px;
-  overflow-y: auto;
-}
-
-#chatInput {
-  display: flex;
-}
-
-#chatInput input {
-  flex: 1;
-  padding: 6px;
-  border: none;
-  border-top: 1px solid #ddd;
-}
-
-#chatInput button {
-  background: green;
-  color: white;
-  border: none;
-  padding: 6px 10px;
-}
-
+    #chatInput button {
+      background: green;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+    }
   </style>
 </head>
 <body>
@@ -230,13 +222,15 @@
       <span class="letter">o</span>
     </div>
     <div id="spinner"></div>
-  </div>  <div id="topBar">
+  </div>
+
+  <div id="topBar">
     <div id="clock">
       <svg viewBox="0 0 100 100">
-        <circle class="clock-face" cx="50" cy="50" r="48" fill="none" stroke="#222" stroke-width="3" />
-        <g id="minuteGroup"><line class="hand minute" x1="50" y1="50" x2="50" y2="24" stroke="black" stroke-width="3" /></g>
-        <g id="secondGroup"><line class="hand second" x1="50" y1="50" x2="50" y2="14" stroke="red" stroke-width="2" /></g>
-        <circle class="center-dot" cx="50" cy="50" r="2" fill="#111" />
+        <circle cx="50" cy="50" r="48" fill="none" stroke="#222" stroke-width="3" />
+        <g id="minuteGroup"><line x1="50" y1="50" x2="50" y2="24" stroke="black" stroke-width="3" /></g>
+        <g id="secondGroup"><line x1="50" y1="50" x2="50" y2="14" stroke="red" stroke-width="2" /></g>
+        <circle cx="50" cy="50" r="2" fill="#111" />
       </svg>
     </div>
     <div id="timeText">
@@ -248,15 +242,22 @@
         <path d="M12 2a5 5 0 110 10 5 5 0 010-10zm0 12c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
       </svg>
     </div>
-  </div>  <div id="loginBox">
+  </div>
+
+  <div id="loginBox">
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <button onclick="handleLogin()">Login / Signup</button>
-  </div>  <div id="map"></div>
+  </div>
+
+  <div id="map"></div>
   <div id="instruction">
     <span>Walk to blue circle and dig for treasure</span>
     <button id="closeInstruction">✕</button>
-  </div><button id="digBtn">DIG FOR TREASURE</button> <button id="chatBtn">Chat</button>
+  </div>
+
+  <button id="digBtn">DIG FOR TREASURE</button>
+  <button id="chatBtn">Chat</button>
 
   <div id="chatBox">
     <div id="chatMessages"></div>
@@ -264,7 +265,11 @@
       <input type="text" id="chatText" placeholder="Say something..." />
       <button onclick="sendMsg()">Send</button>
     </div>
-  </div>  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>  <script>
+  </div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script>
+    // Supabase config
     const SUPABASE_URL = 'https://mgtilfgygzymxiyixjit.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndGlsZmd5Z3p5bXhpeWl4aml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MjQwMjMsImV4cCI6MjA2NzMwMDAyM30.0Kx5Lfd65QVcnQMOvnxzSnRcoyu2smuUFijzUFu8n_g';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -278,7 +283,6 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
       if (error) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) {
@@ -292,8 +296,13 @@
       }
     }
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw'
-    const map = new mapboxgl.Map({ container: 'map', style: 'mapbox://styles/mapbox/streets-v11', center: [-73.7284, 40.9728], zoom: 14 });
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-73.7284, 40.9728],
+      zoom: 14
+    });
 
     document.getElementById('triggerSpinner').addEventListener('animationstart', () => {
       document.getElementById('spinner').style.display = 'block';
@@ -374,5 +383,6 @@
 
     updateClock();
     setInterval(updateClock, 1000);
-  </script></body>
+  </script>
+</body>
 </html>
