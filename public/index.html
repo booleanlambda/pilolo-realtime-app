@@ -1,11 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Pilolo Map with Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    if (location.search.includes("skipLoader=true")) {
+      document.write(`
+        <style>
+          #loader, #mapBackground, #piloloText, #spinner {
+            display: none !important;
+          }
+        </style>
+      `);
+    }
+  </script>
   <style>
     html, body {
       margin: 0;
@@ -14,7 +24,6 @@
       font-family: sans-serif;
       position: relative;
     }
-
     #map {
       width: 100%;
       height: 100%;
@@ -24,7 +33,6 @@
       left: 0;
       z-index: 1;
     }
-
     #loader {
       position: fixed;
       inset: 0;
@@ -36,12 +44,10 @@
       z-index: 9999;
       transition: opacity 0.6s ease;
     }
-
     #loader.hidden {
       opacity: 0;
       pointer-events: none;
     }
-
     #mapBackground {
       position: absolute;
       inset: 0;
@@ -50,11 +56,9 @@
       transition: opacity 3s ease;
       z-index: 0;
     }
-
     #mapBackground.visible {
       opacity: 0.6;
     }
-
     #piloloText {
       display: flex;
       gap: 10px;
@@ -63,161 +67,128 @@
       color: #000;
       z-index: 2;
     }
-
     .letter {
       opacity: 0;
       transform: translateY(40px);
       animation: slideIn 0.5s forwards;
     }
-
     .letter:nth-child(1) { animation-delay: 0s; }
     .letter:nth-child(2) { animation-delay: 0.5s; }
     .letter:nth-child(3) { animation-delay: 1s; }
     .letter:nth-child(4) { animation-delay: 1.5s; }
     .letter:nth-child(5) { animation-delay: 2s; }
-    .letter:nth-child(6) { animation-delay: 2.5s; }
+    .letter:nth-child(6) { animation-delay: 2.5s; }@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+#spinner {
+  margin-top: 30px;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #0077ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: none;
+  z-index: 2;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes slideIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+#topBar {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  width: 100%;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 9998;
+}
 
-    #spinner {
-      margin-top: 30px;
-      width: 40px;
-      height: 40px;
-      border: 4px solid #ccc;
-      border-top: 4px solid #0077ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      display: none;
-      z-index: 2;
-    }
+#clock, #userIcon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+#clock svg {
+  width: 50px;
+  height: 50px;
+}
 
-    #topBar {
-      position: fixed;
-      top: 10px;
-      left: 0;
-      width: 100%;
-      padding: 0 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 9998;
-    }
+#timeText {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  background: rgba(255,255,255,0.6);
+  padding: 4px 12px;
+  border-radius: 8px;
+}
 
-    #clock, #userIcon {
-      width: 64px;
-      height: 64px;
-      background: rgba(255,255,255,0.6);
-      border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
+#chatBtn {
+  display: none;
+  position: fixed;
+  bottom: 120px;
+  right: 20px;
+  padding: 12px 18px;
+  background: #0077ff;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  z-index: 9999;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
 
-    #clock svg {
-      width: 50px;
-      height: 50px;
-    }
+#chatBox {
+  position: fixed;
+  bottom: 180px;
+  right: 20px;
+  width: 260px;
+  height: 300px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
 
-    #timeText {
-      text-align: center;
-      font-size: 14px;
-      font-weight: bold;
-      background: rgba(255,255,255,0.6);
-      padding: 4px 12px;
-      border-radius: 8px;
-    }
+#chatMessages {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+}
 
-    #loginBox {
-      position: fixed;
-      top: 90px;
-      right: 20px;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      display: none;
-      flex-direction: column;
-      z-index: 9999;
-    }
+#chatInput {
+  display: flex;
+}
 
-    #loginBox input {
-      margin-bottom: 8px;
-      padding: 6px;
-      width: 200px;
-    }
+#chatInput input {
+  flex: 1;
+  padding: 6px;
+  border: none;
+  border-top: 1px solid #ddd;
+}
 
-    #loginBox button {
-      padding: 6px;
-      background: #0077ff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+#chatInput button {
+  background: green;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+}
 
-    #chatBtn {
-      display: none;
-      position: fixed;
-      bottom: 120px;
-      right: 20px;
-      padding: 12px 18px;
-      background: #0077ff;
-      color: #fff;
-      border: none;
-      border-radius: 24px;
-      z-index: 9999;
-      font-size: 16px;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-
-    #chatBox {
-      position: fixed;
-      bottom: 180px;
-      right: 20px;
-      width: 260px;
-      height: 300px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 9999;
-    }
-
-    #chatMessages {
-      flex: 1;
-      padding: 8px;
-      overflow-y: auto;
-    }
-
-    #chatInput {
-      display: flex;
-    }
-
-    #chatInput input {
-      flex: 1;
-      padding: 6px;
-      border: none;
-      border-top: 1px solid #ddd;
-    }
-
-    #chatInput button {
-      background: green;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-    }
   </style>
 </head>
 <body>
@@ -232,9 +203,7 @@
       <span class="letter">o</span>
     </div>
     <div id="spinner"></div>
-  </div>
-
-  <div id="topBar">
+  </div>  <div id="topBar">
     <div id="clock">
       <svg viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="48" fill="none" stroke="#222" stroke-width="3" />
@@ -252,22 +221,7 @@
         <path d="M12 2a5 5 0 110 10 5 5 0 010-10zm0 12c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
       </svg>
     </div>
-  </div>
-
-  <div id="loginBox">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="handleLogin()">Login / Signup</button>
-  </div>
-
-  <div id="map"></div>
-  <div id="instruction">
-    <span>Walk to blue circle and dig for treasure</span>
-    <button id="closeInstruction">✕</button>
-  </div>
-
-  <button id="digBtn">DIG FOR TREASURE</button>
-  <button id="chatBtn">Chat</button>
+  </div>  <div id="map"></div><button id="chatBtn">Chat</button>
 
   <div id="chatBox">
     <div id="chatMessages"></div>
@@ -275,53 +229,24 @@
       <input type="text" id="chatText" placeholder="Say something..." />
       <button onclick="sendMsg()">Send</button>
     </div>
-  </div>
+  </div>  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const skipLoader = urlParams.get("skipLoader") === "true";
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <script>
-    window.onload = () => {
-      const SUPABASE_URL = 'https://mgtilfgygzymxiyixjit.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndGlsZmd5Z3p5bXhpeWl4aml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MjQwMjMsImV4cCI6MjA2NzMwMDAyM30.0Kx5Lfd65QVcnQMOvnxzSnRcoyu2smuUFijzUFu8n_g';
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw'
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-73.7284, 40.9728],
+      zoom: 14
+    });
 
-      document.getElementById("userIcon").addEventListener("click", () => {
-        const box = document.getElementById("loginBox");
-        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-      });
-
-      window.handleLogin = async () => {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          const { error: signUpError } = await supabase.auth.signUp({ email, password });
-          if (signUpError) {
-            alert("Login failed: " + signUpError.message);
-          } else {
-            alert("Account created. You can now log in.");
-          }
-        } else {
-          alert("Logged in as " + data.user.email);
-          document.getElementById("loginBox").style.display = "none";
-        }
-      };
-
-      window.sendMsg = () => {
-        const input = document.getElementById("chatText");
-        const msg = document.createElement("div");
-        msg.textContent = input.value;
-        document.getElementById("chatMessages").appendChild(msg);
-        input.value = '';
-      };
-
-      mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw';
-      const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-73.7284, 40.9728],
-        zoom: 14
-      });
-
+    if (skipLoader) {
+      document.getElementById("loader").remove();
+      document.getElementById("map").style.display = "block";
+      document.getElementById("chatBtn").style.display = "block";
+      map.resize();
+    } else {
       document.getElementById('triggerSpinner').addEventListener('animationstart', () => {
         document.getElementById('spinner').style.display = 'block';
       });
@@ -338,66 +263,58 @@
           });
         }, 5000);
       });
+    }
 
-      const geo = new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-        showUserHeading: true
-      });
-      map.addControl(geo, 'bottom-right');
-
-      let marker, currentCoords;
-      navigator.geolocation.watchPosition(pos => {
-        currentCoords = [pos.coords.longitude, pos.coords.latitude];
-        if (!marker) {
-          marker = new mapboxgl.Marker({ color: 'green' }).setLngLat(currentCoords).addTo(map);
-          map.flyTo({ center: currentCoords, zoom: 16 });
-        } else {
-          marker.setLngLat(currentCoords);
-        }
-        updateBubblePosition(currentCoords);
-      }, () => alert("Geolocation blocked."), { enableHighAccuracy: true });
-
-      function updateBubblePosition(coords) {
-        const bubble = document.getElementById("instruction");
-        const point = map.project(coords);
-        requestAnimationFrame(() => {
-          bubble.style.left = `${point.x}px`;
-          bubble.style.top = `${point.y - 70}px`;
-          bubble.style.transform = `translate(-50%, -100%)`;
-        });
-      }
-
-      map.on('move', () => {
-        if (marker && currentCoords) updateBubblePosition(currentCoords);
-      });
-
-      document.getElementById("closeInstruction").onclick = () => {
-        document.getElementById("instruction").style.display = "none";
-      };
-
-      document.getElementById("chatBtn").onclick = () => {
-        const box = document.getElementById("chatBox");
-        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-      };
-
-      const minuteGroup = document.getElementById("minuteGroup");
-      const secondGroup = document.getElementById("secondGroup");
-      const minutesLeftEl = document.getElementById("minutesLeft");
-
-      function updateClock() {
-        const now = new Date();
-        const sec = now.getSeconds();
-        const min = now.getMinutes();
-        const minsLeft = 59 - min;
-        secondGroup.setAttribute("transform", `rotate(${sec * 6}, 50, 50)`);
-        minuteGroup.setAttribute("transform", `rotate(${(min + sec / 60) * 6}, 50, 50)`);
-        minutesLeftEl.innerText = `${minsLeft + 1} minutes left to hunt`;
-      }
-
-      updateClock();
-      setInterval(updateClock, 1000);
+    document.getElementById("userIcon").onclick = () => {
+      window.location.href = "profile.html";
     };
-  </script>
-</body>
+
+    const geo = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true
+    });
+    map.addControl(geo, 'bottom-right');
+
+    let marker, currentCoords;
+    navigator.geolocation.watchPosition(pos => {
+      currentCoords = [pos.coords.longitude, pos.coords.latitude];
+      if (!marker) {
+        marker = new mapboxgl.Marker({ color: 'green' }).setLngLat(currentCoords).addTo(map);
+        map.flyTo({ center: currentCoords, zoom: 16 });
+      } else {
+        marker.setLngLat(currentCoords);
+      }
+    }, () => alert("Geolocation blocked."), { enableHighAccuracy: true });
+
+    document.getElementById("chatBtn").onclick = () => {
+      const box = document.getElementById("chatBox");
+      box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    function sendMsg() {
+      const input = document.getElementById("chatText");
+      const msg = document.createElement("div");
+      msg.textContent = input.value;
+      document.getElementById("chatMessages").appendChild(msg);
+      input.value = '';
+    }
+
+    const minuteGroup = document.getElementById("minuteGroup");
+    const secondGroup = document.getElementById("secondGroup");
+    const minutesLeftEl = document.getElementById("minutesLeft");
+
+    function updateClock() {
+      const now = new Date();
+      const sec = now.getSeconds();
+      const min = now.getMinutes();
+      const minsLeft = 59 - min;
+      secondGroup.setAttribute("transform", `rotate(${sec * 6}, 50, 50)`);
+      minuteGroup.setAttribute("transform", `rotate(${(min + sec / 60) * 6}, 50, 50)`);
+      minutesLeftEl.innerText = `${minsLeft + 1} minutes left to hunt`;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script></body>
 </html>
