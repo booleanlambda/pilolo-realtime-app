@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+    }.profile-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+h2 {
+  margin-bottom: 4px;
+  font-size: 24px;
+}
+
+p {
+  margin: 4px 0;
+  color: #444;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: #666;
+}
+
+button {
+  padding: 10px 16px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+#loginLogoutBtn {
+  background: #0077ff;
+  color: white;
+}
+
+#createGroupBtn {
+  background: #00a86b;
+  color: white;
+  margin-left: 8px;
+}
+
+#cashOutBtn {
+  background: #e63946;
+  color: white;
+  margin-top: 16px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="profile-card">
+    <button class="close-btn" onclick="goHome()">✕</button><h2 id="username">Guest</h2>
+<p><span class="profile-label">Country:</span> <span id="country">Detecting...</span></p>
+<p><span class="profile-label">City:</span> <span id="city">Detecting...</span></p>
+<p><span class="profile-label">Email:</span> <span id="email">Not logged in</span></p>
+<p><span class="profile-label">Phone:</span> <span id="phone">N/A</span></p>
+<p><span class="profile-label">Groups:</span> <span id="groups">None</span></p>
+<p><span class="profile-label">Treasures Found:</span> <span id="treasures">0</span></p>
+
+<div>
+  <button id="loginLogoutBtn" onclick="handleAuth()">Loading...</button>
+  <button id="createGroupBtn">Create Group</button>
+</div>
+<button id="cashOutBtn" onclick="cashOut()">Cash Out</button>
+
+  </div>  <script>
+    const SUPABASE_URL = 'https://mgtilfgygzymxiyixjit.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // shorten key here
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const usernameEl = document.getElementById('username');
+      const emailEl = document.getElementById('email');
+      const loginLogoutBtn = document.getElementById('loginLogoutBtn');
+
+      if (user) {
+        usernameEl.textContent = user.user_metadata?.username || 'Logged User';
+        emailEl.textContent = user.email;
+        loginLogoutBtn.textContent = "Logout";
+      } else {
+        loginLogoutBtn.textContent = "Login";
+      }
+    }
+
+    async function handleAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.auth.signOut();
+        window.location.reload();
+      } else {
+        window.location.href = "index.html";
+      }
+    }
+
+    function goHome() {
+      window.location.href = "index.html";
+    }
+
+    function cashOut() {
+      alert("Cash out feature coming soon.");
+    }
+
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+      const data = await res.json();
+      document.getElementById('city').textContent = data.address.city || data.address.town || 'Unknown';
+      document.getElementById('country').textContent = data.address.country || 'Unknown';
+    }, () => {
+      document.getElementById('city').textContent = 'Unavailable';
+      document.getElementById('country').textContent = 'Unavailable';
+    });
+
+    loadProfile();
+  </script></body>
+</html>
