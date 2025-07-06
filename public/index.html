@@ -14,6 +14,7 @@
       font-family: sans-serif;
       position: relative;
     }
+
     #map {
       width: 100%;
       height: 100%;
@@ -23,6 +24,7 @@
       left: 0;
       z-index: 1;
     }
+
     #loader {
       position: fixed;
       inset: 0;
@@ -34,10 +36,12 @@
       z-index: 9999;
       transition: opacity 0.6s ease;
     }
+
     #loader.hidden {
       opacity: 0;
       pointer-events: none;
     }
+
     #mapBackground {
       position: absolute;
       inset: 0;
@@ -46,9 +50,11 @@
       transition: opacity 3s ease;
       z-index: 0;
     }
+
     #mapBackground.visible {
       opacity: 0.6;
     }
+
     #piloloText {
       display: flex;
       gap: 10px;
@@ -57,11 +63,13 @@
       color: #000;
       z-index: 2;
     }
+
     .letter {
       opacity: 0;
       transform: translateY(40px);
       animation: slideIn 0.5s forwards;
     }
+
     .letter:nth-child(1) { animation-delay: 0s; }
     .letter:nth-child(2) { animation-delay: 0.5s; }
     .letter:nth-child(3) { animation-delay: 1s; }
@@ -75,6 +83,7 @@
         transform: translateY(0);
       }
     }
+
     #spinner {
       margin-top: 30px;
       width: 40px;
@@ -86,6 +95,7 @@
       display: none;
       z-index: 2;
     }
+
     @keyframes spin { to { transform: rotate(360deg); } }
 
     #topBar {
@@ -269,120 +279,125 @@
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
-    // Supabase config
-    const SUPABASE_URL = 'https://mgtilfgygzymxiyixjit.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndGlsZmd5Z3p5bXhpeWl4aml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MjQwMjMsImV4cCI6MjA2NzMwMDAyM30.0Kx5Lfd65QVcnQMOvnxzSnRcoyu2smuUFijzUFu8n_g';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.onload = () => {
+      const SUPABASE_URL = 'https://mgtilfgygzymxiyixjit.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndGlsZmd5Z3p5bXhpeWl4aml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MjQwMjMsImV4cCI6MjA2NzMwMDAyM30.0Kx5Lfd65QVcnQMOvnxzSnRcoyu2smuUFijzUFu8n_g';
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.getElementById("userIcon").onclick = () => {
-      const box = document.getElementById("loginBox");
-      box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    async function handleLogin() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) {
-          alert("Login failed: " + signUpError.message);
-        } else {
-          alert("Account created. You can now log in.");
-        }
-      } else {
-        alert("Logged in as " + data.user.email);
-        document.getElementById("loginBox").style.display = "none";
-      }
-    }
-
-    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw';
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [-73.7284, 40.9728],
-      zoom: 14
-    });
-
-    document.getElementById('triggerSpinner').addEventListener('animationstart', () => {
-      document.getElementById('spinner').style.display = 'block';
-    });
-
-    document.getElementById('triggerMapBg').addEventListener('animationstart', () => {
-      document.getElementById('mapBackground').classList.add('visible');
-      setTimeout(() => {
-        document.getElementById('loader').classList.add('hidden');
-        document.getElementById('loader').addEventListener('transitionend', () => {
-          document.getElementById('loader').remove();
-          document.getElementById('map').style.display = 'block';
-          document.getElementById('chatBtn').style.display = 'block';
-          map.resize();
-        });
-      }, 5000);
-    });
-
-    const geo = new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true, showUserHeading: true });
-    map.addControl(geo, 'bottom-right');
-
-    let marker, currentCoords;
-    navigator.geolocation.watchPosition(pos => {
-      currentCoords = [pos.coords.longitude, pos.coords.latitude];
-      if (!marker) {
-        marker = new mapboxgl.Marker({ color: 'green' }).setLngLat(currentCoords).addTo(map);
-        map.flyTo({ center: currentCoords, zoom: 16 });
-      } else {
-        marker.setLngLat(currentCoords);
-      }
-      updateBubblePosition(currentCoords);
-    }, () => alert("Geolocation blocked."), { enableHighAccuracy: true });
-
-    function updateBubblePosition(coords) {
-      const bubble = document.getElementById("instruction");
-      const point = map.project(coords);
-      requestAnimationFrame(() => {
-        bubble.style.left = `${point.x}px`;
-        bubble.style.top = `${point.y - 70}px`;
-        bubble.style.transform = `translate(-50%, -100%)`;
+      document.getElementById("userIcon").addEventListener("click", () => {
+        const box = document.getElementById("loginBox");
+        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
       });
-    }
 
-    map.on('move', () => {
-      if (marker && currentCoords) updateBubblePosition(currentCoords);
-    });
+      window.handleLogin = async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          const { error: signUpError } = await supabase.auth.signUp({ email, password });
+          if (signUpError) {
+            alert("Login failed: " + signUpError.message);
+          } else {
+            alert("Account created. You can now log in.");
+          }
+        } else {
+          alert("Logged in as " + data.user.email);
+          document.getElementById("loginBox").style.display = "none";
+        }
+      };
 
-    document.getElementById("closeInstruction").onclick = () => {
-      document.getElementById("instruction").style.display = "none";
+      window.sendMsg = () => {
+        const input = document.getElementById("chatText");
+        const msg = document.createElement("div");
+        msg.textContent = input.value;
+        document.getElementById("chatMessages").appendChild(msg);
+        input.value = '';
+      };
+
+      mapboxgl.accessToken = 'pk.eyJ1Ijoid2VtYXB6IiwiYSI6ImNtY3J0MDlqYjBwdXcyanExcTRsaG5pZXUifQ.gBtrb0P7o0ukM8HtyBcTrw';
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [-73.7284, 40.9728],
+        zoom: 14
+      });
+
+      document.getElementById('triggerSpinner').addEventListener('animationstart', () => {
+        document.getElementById('spinner').style.display = 'block';
+      });
+
+      document.getElementById('triggerMapBg').addEventListener('animationstart', () => {
+        document.getElementById('mapBackground').classList.add('visible');
+        setTimeout(() => {
+          document.getElementById('loader').classList.add('hidden');
+          document.getElementById('loader').addEventListener('transitionend', () => {
+            document.getElementById('loader').remove();
+            document.getElementById('map').style.display = 'block';
+            document.getElementById('chatBtn').style.display = 'block';
+            map.resize();
+          });
+        }, 5000);
+      });
+
+      const geo = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true
+      });
+      map.addControl(geo, 'bottom-right');
+
+      let marker, currentCoords;
+      navigator.geolocation.watchPosition(pos => {
+        currentCoords = [pos.coords.longitude, pos.coords.latitude];
+        if (!marker) {
+          marker = new mapboxgl.Marker({ color: 'green' }).setLngLat(currentCoords).addTo(map);
+          map.flyTo({ center: currentCoords, zoom: 16 });
+        } else {
+          marker.setLngLat(currentCoords);
+        }
+        updateBubblePosition(currentCoords);
+      }, () => alert("Geolocation blocked."), { enableHighAccuracy: true });
+
+      function updateBubblePosition(coords) {
+        const bubble = document.getElementById("instruction");
+        const point = map.project(coords);
+        requestAnimationFrame(() => {
+          bubble.style.left = `${point.x}px`;
+          bubble.style.top = `${point.y - 70}px`;
+          bubble.style.transform = `translate(-50%, -100%)`;
+        });
+      }
+
+      map.on('move', () => {
+        if (marker && currentCoords) updateBubblePosition(currentCoords);
+      });
+
+      document.getElementById("closeInstruction").onclick = () => {
+        document.getElementById("instruction").style.display = "none";
+      };
+
+      document.getElementById("chatBtn").onclick = () => {
+        const box = document.getElementById("chatBox");
+        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+      };
+
+      const minuteGroup = document.getElementById("minuteGroup");
+      const secondGroup = document.getElementById("secondGroup");
+      const minutesLeftEl = document.getElementById("minutesLeft");
+
+      function updateClock() {
+        const now = new Date();
+        const sec = now.getSeconds();
+        const min = now.getMinutes();
+        const minsLeft = 59 - min;
+        secondGroup.setAttribute("transform", `rotate(${sec * 6}, 50, 50)`);
+        minuteGroup.setAttribute("transform", `rotate(${(min + sec / 60) * 6}, 50, 50)`);
+        minutesLeftEl.innerText = `${minsLeft + 1} minutes left to hunt`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
     };
-
-    document.getElementById("chatBtn").onclick = () => {
-      const box = document.getElementById("chatBox");
-      box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    function sendMsg() {
-      const input = document.getElementById("chatText");
-      const msg = document.createElement("div");
-      msg.textContent = input.value;
-      document.getElementById("chatMessages").appendChild(msg);
-      input.value = '';
-    }
-
-    const minuteGroup = document.getElementById("minuteGroup");
-    const secondGroup = document.getElementById("secondGroup");
-    const minutesLeftEl = document.getElementById("minutesLeft");
-
-    function updateClock() {
-      const now = new Date();
-      const sec = now.getSeconds();
-      const min = now.getMinutes();
-      const minsLeft = 59 - min;
-      secondGroup.setAttribute("transform", `rotate(${sec * 6}, 50, 50)`);
-      minuteGroup.setAttribute("transform", `rotate(${(min + sec / 60) * 6}, 50, 50)`);
-      minutesLeftEl.innerText = `${minsLeft + 1} minutes left to hunt`;
-    }
-
-    updateClock();
-    setInterval(updateClock, 1000);
   </script>
 </body>
 </html>
